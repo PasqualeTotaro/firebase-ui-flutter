@@ -22,6 +22,14 @@ dependencies:
     sdk: flutter
   meta: ^1.10.0
 
+dependency_overrides:
+  meta: ^1.9.1
+  collection: ^1.17.1
+  async: ^2.11.0
+  http: ^1.0.0
+  firebase_ui_shared:
+    path: ../firebase_ui_shared/
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -29,6 +37,9 @@ dev_dependencies:
   mockito: ^5.4.4
 
 false_secrets:
-  - example/**
+  - "/example/**/google-services.json"
+  - "/example/**/firebase_options.dart"
+  - "/example/**/GoogleService-Info.plist"
+  - "example/lib/config.dart"
 
 flutter:

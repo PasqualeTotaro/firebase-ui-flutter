@@ -83,6 +83,7 @@ class _LoginViewState extends State<LoginView> {
   bool get _showTitle => widget.showTitle ?? true;
   bool get _showAuthActionSwitch => widget.showAuthActionSwitch ?? true;
   bool _buttonsBuilt = false;
+  bool _visible = false;
 
   void setAction(AuthAction action) {
     setState(() {
@@ -120,7 +121,11 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
-  void _handleDifferentAuthAction(BuildContext context) {
+  Future<void> _handleDifferentAuthAction(BuildContext context) async {
+    setState(() {
+      _visible = false;
+    });
+    await Future.delayed(const Duration(milliseconds: 300));
     if (_action == AuthAction.signIn) {
       setState(() {
         _action = AuthAction.signUp;
@@ -130,6 +135,31 @@ class _LoginViewState extends State<LoginView> {
         _action = AuthAction.signIn;
       });
     }
+    setState(() {
+      _visible = true;
+    });
+  }
+
+  Future<void> _handleForgotPassword(BuildContext context) async {
+    setState(() {
+      _visible = false;
+    });
+    await Future.delayed(const Duration(milliseconds: 300));
+    setState(() {
+      _action = AuthAction.recoveryPassword;
+      _visible = true;
+    });
+  }
+
+  Future<void> _handleGoBack(BuildContext context) async {
+    setState(() {
+      _visible = false;
+    });
+    await Future.delayed(const Duration(milliseconds: 300));
+    setState(() {
+      _action = AuthAction.signIn;
+      _visible = true;
+    });
   }
 
   List<Widget> _buildHeader(BuildContext context) {
@@ -158,13 +188,14 @@ class _LoginViewState extends State<LoginView> {
       registerTextColor = theme.primaryColor;
       hintStyle = theme.textTheme.textStyle.copyWith(fontSize: 12);
     } else {
-      final theme = Theme.of(context);
-      hintStyle = Theme.of(context).textTheme.bodySmall;
-      registerTextColor = theme.colorScheme.primary;
+      hintStyle = Theme.of(context).textTheme.bodyMedium;
+      registerTextColor = Colors.white;
     }
 
     return [
-      Title(text: title),
+      Title(
+        text: title,
+      ),
       const SizedBox(height: 16),
       if (widget.subtitleBuilder != null)
         widget.subtitleBuilder!(
@@ -181,9 +212,11 @@ class _LoginViewState extends State<LoginView> {
               ),
               TextSpan(
                 text: actionText,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: registerTextColor,
-                    ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: registerTextColor,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.white,
+                    fontWeight: FontWeight.bold),
                 mouseCursor: SystemMouseCursors.click,
                 recognizer: TapGestureRecognizer()
                   ..onTap = () => _handleDifferentAuthAction(context),
@@ -197,6 +230,18 @@ class _LoginViewState extends State<LoginView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      if (mounted) {
+        setState(() {
+          _visible = true;
+        });
+      }
+    });
+  }
+
+  @override
   void didUpdateWidget(covariant LoginView oldWidget) {
     if (oldWidget.action != widget.action) {
       _action = widget.action;
@@ -204,14 +249,22 @@ class _LoginViewState extends State<LoginView> {
     super.didUpdateWidget(oldWidget);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildWidget(BuildContext context) {
     final l = FirebaseUILocalizations.labelsOf(context);
     final platform = Theme.of(context).platform;
     _buttonsBuilt = false;
 
-    return IntrinsicHeight(
+    if (_action == AuthAction.recoveryPassword) {
+      return ForgotPasswordView(
+        auth: widget.auth,
+        email: widget.email,
+        onGoBack: () => _handleGoBack(context),
+      );
+    }
+
+    return SingleChildScrollView(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (_showTitle) ..._buildHeader(context),
@@ -225,9 +278,9 @@ class _LoginViewState extends State<LoginView> {
                   action: _action,
                   provider: provider,
                   email: widget.email,
+                  onForgotPassword: () => _handleForgotPassword(context),
                   actionButtonLabelOverride: widget.actionButtonLabelOverride,
-                  showPasswordVisibilityToggle:
-                      widget.showPasswordVisibilityToggle,
+                  showPasswordVisibilityToggle: true,
                 )
               ] else if (provider is PhoneAuthProvider) ...[
                 const SizedBox(height: 8),
@@ -243,8 +296,10 @@ class _LoginViewState extends State<LoginView> {
                   auth: widget.auth,
                   provider: provider,
                 ),
-              ] else if (provider is OAuthProvider && !_buttonsBuilt)
-                _buildOAuthButtons(platform),
+              ] else if (provider is OAuthProvider && !_buttonsBuilt) ...[
+                const SizedBox(height: 24),
+                _buildOAuthButtons(platform)
+              ],
           if (widget.footerBuilder != null)
             widget.footerBuilder!(
               context,
@@ -252,6 +307,15 @@ class _LoginViewState extends State<LoginView> {
             ),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: _visible ? 1 : 0,
+      duration: const Duration(milliseconds: 300),
+      child: _buildWidget(context),
     );
   }
 }

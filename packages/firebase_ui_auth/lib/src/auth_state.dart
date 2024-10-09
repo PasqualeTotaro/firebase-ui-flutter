@@ -67,7 +67,7 @@ abstract class AuthState {
 /// A default [AuthState] for many auth flows.
 /// {@endtemplate}
 class Uninitialized extends AuthState {
-  /// {@macro ffui.auth.auth_state.uninitialized}
+  /// {@macrp ffui.auth.auth_state.uninitialized}
   const Uninitialized();
 }
 

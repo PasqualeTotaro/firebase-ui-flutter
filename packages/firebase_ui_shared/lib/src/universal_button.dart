@@ -115,25 +115,34 @@ class UniversalButton extends PlatformWidget {
 
   @override
   Widget buildMaterial(BuildContext context) {
-    final child = this.child ?? Text(text!);
+    final child = this.child ??
+        Text(
+          text!,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.bold,
+                decorationColor: Colors.white,
+              ),
+        );
 
     ButtonStyle? style;
 
     if (materialColor != null) {
-      WidgetStateColor? foregroundColor;
-      WidgetStateColor? backgroundColor;
+      MaterialStateColor? foregroundColor;
+      MaterialStateColor? backgroundColor;
 
       if (variant == ButtonVariant.text) {
-        foregroundColor = WidgetStateColor.resolveWith((_) => materialColor!);
+        foregroundColor = MaterialStateColor.resolveWith((_) => materialColor!);
       } else {
-        foregroundColor = WidgetStateColor.resolveWith((_) => contentColor!);
-        backgroundColor = WidgetStateColor.resolveWith((_) => materialColor!);
+        foregroundColor = MaterialStateColor.resolveWith((_) => contentColor!);
+        backgroundColor = MaterialStateColor.resolveWith((_) => materialColor!);
       }
 
       style = ButtonStyle(
         foregroundColor: foregroundColor,
         backgroundColor: backgroundColor,
-        overlayColor: WidgetStateColor.resolveWith(
+        overlayColor: MaterialStateColor.resolveWith(
           (states) => materialColor!.withAlpha(20),
         ),
       );

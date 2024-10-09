@@ -45,23 +45,18 @@ class _EmailLinkSignInViewState extends State<EmailLinkSignInView> {
   Widget build(BuildContext context) {
     final l = FirebaseUILocalizations.labelsOf(context);
     final formKey = GlobalKey<FormState>();
-    const statesToHideForm = [
-      AwaitingDynamicLink,
-      SigningIn,
-    ];
 
     return AuthFlowBuilder<EmailLinkAuthController>(
       auth: widget.auth,
       provider: widget.provider,
       builder: (context, state, ctrl, child) {
-        final isFormHidden = statesToHideForm.contains(state.runtimeType);
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Title(text: l.signInWithEmailLinkViewTitleText),
             const SizedBox(height: 16),
-            if (!isFormHidden)
+            if (state is! AwaitingDynamicLink)
               Form(
                 key: formKey,
                 child: EmailInput(
@@ -79,7 +74,7 @@ class _EmailLinkSignInViewState extends State<EmailLinkSignInView> {
               Text(l.signInWithEmailLinkSentText),
               const SizedBox(height: 16),
             ],
-            if (!isFormHidden) ...[
+            if (state is! AwaitingDynamicLink) ...[
               const SizedBox(height: 8),
               LoadingButton(
                 isLoading: state is SendingLink,
